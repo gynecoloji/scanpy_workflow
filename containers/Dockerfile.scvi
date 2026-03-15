@@ -1,0 +1,13 @@
+# containers/Dockerfile.scvi
+FROM continuumio/miniconda3:24.1.2-0
+
+WORKDIR /app
+
+COPY envs/env_scvi.yaml /tmp/env_scvi.yaml
+RUN conda env create -f /tmp/env_scvi.yaml && conda clean -afy
+
+COPY . /app
+RUN conda run -n env_scvi pip install -e /app --no-deps
+
+SHELL ["conda", "run", "-n", "env_scvi", "/bin/bash", "-c"]
+ENTRYPOINT ["conda", "run", "-n", "env_scvi", "scanpy-workflow"]
