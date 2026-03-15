@@ -1,0 +1,216 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1340" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-opt" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="120%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#00000018"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="1340" fill="#f8fafc" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">Scanpy Workflow — Nextflow DSL2 Pipeline</text>
+  <text x="450" y="58" text-anchor="middle" font-size="11" fill="#64748b">nextflow run workflow/main.nf -params-file params.yaml -profile conda</text>
+
+  <!-- Legend -->
+  <rect x="560" y="72" width="320" height="88" rx="8" fill="white" stroke="#e2e8f0" stroke-width="1.2"/>
+  <text x="720" y="90" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">Legend</text>
+  <rect x="574" y="100" width="14" height="14" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2"/>
+  <text x="595" y="112" font-size="10" fill="#1e40af">env_scanpy (Python)</text>
+  <rect x="574" y="120" width="14" height="14" rx="3" fill="#fce7f3" stroke="#ec4899" stroke-width="1.2"/>
+  <text x="595" y="132" font-size="10" fill="#9d174d">env_scvi (Python + PyTorch)</text>
+  <rect x="574" y="140" width="14" height="14" rx="3" fill="#dcfce7" stroke="#22c55e" stroke-width="1.2"/>
+  <text x="595" y="152" font-size="10" fill="#166534">env_r (R / Bioconductor)</text>
+  <rect x="720" y="100" width="14" height="14" rx="3" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,2"/>
+  <text x="741" y="112" font-size="10" fill="#64748b">optional step</text>
+  <line x1="720" y1="130" x2="760" y2="130" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="768" y="134" font-size="10" fill="#64748b">data flow</text>
+  <line x1="720" y1="150" x2="760" y2="150" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-opt)"/>
+  <text x="768" y="154" font-size="10" fill="#94a3b8">conditional</text>
+
+  <!-- Input -->
+  <rect x="330" y="76" width="190" height="40" rx="8" fill="#0f172a" filter="url(#shadow)"/>
+  <text x="425" y="91" text-anchor="middle" font-size="11" font-weight="600" fill="white">CellRanger Output</text>
+  <text x="425" y="107" text-anchor="middle" font-size="10" fill="#94a3b8">data/cellranger/&lt;sample&gt;/</text>
+
+  <!-- Arrow: Input -> Per-sample box -->
+  <line x1="425" y1="116" x2="425" y2="136" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ===== PER-SAMPLE SUBWORKFLOW ===== -->
+  <rect x="30" y="138" width="790" height="388" rx="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="425" y="158" text-anchor="middle" font-size="12" font-weight="700" fill="#1d4ed8">PER_SAMPLE subworkflow</text>
+  <text x="425" y="172" text-anchor="middle" font-size="10" fill="#3b82f6">parallelised per sample</text>
+
+  <!-- Steps in PER_SAMPLE: two columns of boxes -->
+  <!-- Step 1: LOAD -->
+  <rect x="290" y="182" width="270" height="42" rx="7" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="198" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">1 · LOAD</text>
+  <text x="425" y="213" text-anchor="middle" font-size="10" fill="#1e3a8a">scanpy-workflow load</text>
+
+  <line x1="425" y1="224" x2="425" y2="240" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 2: AMBIENT (optional) -->
+  <rect x="290" y="242" width="270" height="44" rx="7" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3" filter="url(#shadow)"/>
+  <text x="425" y="258" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">2 · AMBIENT  <tspan font-style="italic" font-size="9" fill="#94a3b8">(optional)</tspan></text>
+  <text x="425" y="273" text-anchor="middle" font-size="10" fill="#64748b">SoupX (R) | DecontX (R)   env_r</text>
+
+  <line x1="425" y1="286" x2="425" y2="302" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 3: QC -->
+  <rect x="290" y="304" width="270" height="42" rx="7" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="320" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">3 · QC</text>
+  <text x="425" y="335" text-anchor="middle" font-size="10" fill="#1e3a8a">scanpy-workflow qc  →  qc_plots/</text>
+
+  <line x1="425" y1="346" x2="425" y2="362" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 4: FILTER -->
+  <rect x="290" y="364" width="270" height="42" rx="7" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="380" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">4 · FILTER</text>
+  <text x="425" y="395" text-anchor="middle" font-size="10" fill="#1e3a8a">scanpy-workflow filter</text>
+
+  <line x1="425" y1="406" x2="425" y2="422" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 5 + 6 side by side -->
+  <!-- Step 5: DOUBLETS (optional) -->
+  <rect x="70" y="424" width="270" height="44" rx="7" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3" filter="url(#shadow)"/>
+  <text x="205" y="440" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">5 · DOUBLETS  <tspan font-style="italic" font-size="9" fill="#94a3b8">(opt.)</tspan></text>
+  <text x="205" y="455" text-anchor="middle" font-size="10" fill="#64748b">scanpy-workflow doublets</text>
+
+  <!-- Step 6: NORMALIZE -->
+  <rect x="560" y="424" width="240" height="44" rx="7" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="680" y="440" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">6 · NORMALIZE</text>
+  <text x="680" y="455" text-anchor="middle" font-size="10" fill="#1e3a8a">library_size (py) | scran (R)</text>
+
+  <!-- connector: filter -> doublets -->
+  <path d="M 360 406 L 205 406 L 205 424" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <!-- connector: filter -> normalize -->
+  <path d="M 490 406 L 680 406 L 680 424" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-opt)"/>
+  <!-- connector: doublets -> HVG -->
+  <path d="M 205 468 L 205 490 L 425 490 L 425 490" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <!-- connector: normalize -> HVG -->
+  <path d="M 680 468 L 680 490 L 426 490" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Step 7: HVG_PER_SAMPLE -->
+  <rect x="290" y="490" width="270" height="22" rx="7" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="505" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">7 · HVG  (per-sample)</text>
+
+  <!-- Arrow out of PER_SAMPLE -->
+  <line x1="425" y1="512" x2="425" y2="536" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ===== INTEGRATION SUBWORKFLOW ===== -->
+  <rect x="30" y="538" width="790" height="350" rx="10" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="425" y="558" text-anchor="middle" font-size="12" font-weight="700" fill="#15803d">INTEGRATION subworkflow</text>
+
+  <!-- Step 8: MERGE -->
+  <rect x="290" y="568" width="270" height="42" rx="7" fill="#dcfce7" stroke="#22c55e" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="584" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">8 · MERGE samples</text>
+  <text x="425" y="599" text-anchor="middle" font-size="10" fill="#14532d">scanpy-workflow merge</text>
+
+  <line x1="425" y1="610" x2="425" y2="626" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 9: HVG post-merge -->
+  <rect x="290" y="628" width="270" height="42" rx="7" fill="#dcfce7" stroke="#22c55e" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="644" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">9 · HVG  (post-merge)</text>
+  <text x="425" y="659" text-anchor="middle" font-size="10" fill="#14532d">scanpy-workflow hvg --mode post-merge</text>
+
+  <line x1="425" y1="670" x2="425" y2="686" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 10: SCALE (optional skip for scVI) -->
+  <rect x="290" y="688" width="270" height="42" rx="7" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3" filter="url(#shadow)"/>
+  <text x="425" y="704" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">10 · SCALE  <tspan font-style="italic" font-size="9" fill="#94a3b8">(skip if scVI BC)</tspan></text>
+  <text x="425" y="719" text-anchor="middle" font-size="10" fill="#64748b">scanpy-workflow scale</text>
+
+  <line x1="425" y1="730" x2="425" y2="746" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 11: PCA -->
+  <rect x="290" y="748" width="270" height="42" rx="7" fill="#dcfce7" stroke="#22c55e" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="764" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">11 · PCA</text>
+  <text x="425" y="779" text-anchor="middle" font-size="10" fill="#14532d">scanpy-workflow pca</text>
+
+  <line x1="425" y1="790" x2="425" y2="806" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 12 + 13 side by side -->
+  <!-- Step 12: BATCH CORRECTION (optional) -->
+  <rect x="60" y="808" width="300" height="52" rx="7" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3" filter="url(#shadow)"/>
+  <text x="210" y="826" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">12 · BATCH CORRECTION  <tspan font-style="italic" font-size="9" fill="#94a3b8">(opt.)</tspan></text>
+  <text x="210" y="841" text-anchor="middle" font-size="10" fill="#64748b">Harmony | BBKNN  (env_scanpy)</text>
+  <text x="210" y="853" text-anchor="middle" font-size="10" fill="#9d174d">scVI  (env_scvi)</text>
+
+  <!-- Step 13: IMPUTATION (optional) -->
+  <rect x="540" y="808" width="250" height="52" rx="7" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3" filter="url(#shadow)"/>
+  <text x="665" y="826" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">13 · IMPUTATION  <tspan font-style="italic" font-size="9" fill="#94a3b8">(opt.)</tspan></text>
+  <text x="665" y="841" text-anchor="middle" font-size="10" fill="#64748b">MAGIC (env_scanpy)</text>
+  <text x="665" y="853" text-anchor="middle" font-size="10" fill="#9d174d">scVI (env_scvi) | ALRA (env_r)</text>
+
+  <!-- connectors PCA -> BC + PCA -> imputation -->
+  <path d="M 360 790 L 210 790 L 210 808" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-opt)"/>
+  <path d="M 490 790 L 665 790 L 665 808" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-opt)"/>
+  <!-- converge out of integration -->
+  <path d="M 210 860 L 210 876 L 425 876" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <path d="M 665 860 L 665 876 L 426 876" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <!-- straight-through arrow (neither BC nor imputation enabled) -->
+  <line x1="425" y1="790" x2="425" y2="876" stroke="#e2e8f0" stroke-width="1.2" stroke-dasharray="3,3"/>
+
+  <!-- Arrow out of INTEGRATION -->
+  <line x1="425" y1="876" x2="425" y2="898" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ===== DOWNSTREAM (main.nf) ===== -->
+  <!-- Step 14: CLUSTER -->
+  <rect x="290" y="900" width="270" height="42" rx="7" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="916" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">14 · CLUSTER</text>
+  <text x="425" y="931" text-anchor="middle" font-size="10" fill="#1e3a8a">leiden | louvain  +  evaluation</text>
+
+  <line x1="425" y1="942" x2="425" y2="958" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 15 + 16 parallel -->
+  <!-- 15: RANK_GENES (optional) -->
+  <rect x="60" y="960" width="260" height="44" rx="7" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3" filter="url(#shadow)"/>
+  <text x="190" y="976" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">15 · RANK_GENES  <tspan font-style="italic" font-size="9" fill="#94a3b8">(opt.)</tspan></text>
+  <text x="190" y="991" text-anchor="middle" font-size="10" fill="#64748b">scanpy-workflow rank-genes</text>
+
+  <!-- 16: ANNOTATE (optional, parallel) -->
+  <rect x="570" y="960" width="290" height="44" rx="7" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3" filter="url(#shadow)"/>
+  <text x="715" y="976" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">16 · ANNOTATE  <tspan font-style="italic" font-size="9" fill="#94a3b8">(opt. parallel)</tspan></text>
+  <text x="715" y="991" text-anchor="middle" font-size="10" fill="#64748b">CellTypist (py) | scType (R)</text>
+
+  <!-- connectors cluster -> rank_genes + annotate -->
+  <path d="M 360 942 L 190 942 L 190 960" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-opt)"/>
+  <path d="M 490 942 L 715 942 L 715 960" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrow-opt)"/>
+
+  <!-- converge from rank_genes -> DE -->
+  <path d="M 190 1004 L 190 1028 L 425 1028" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+  <!-- annotate output is separate; rank_genes feeds DE -->
+  <line x1="425" y1="942" x2="425" y2="1028" stroke="#e2e8f0" stroke-width="1.2" stroke-dasharray="3,3"/>
+
+  <!-- Step 17: DE -->
+  <rect x="290" y="1030" width="270" height="42" rx="7" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.2" filter="url(#shadow)"/>
+  <text x="425" y="1046" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">17 · DE</text>
+  <text x="425" y="1061" text-anchor="middle" font-size="10" fill="#1e3a8a">wilcoxon | t-test | logreg  →  de_results.csv</text>
+
+  <line x1="425" y1="1072" x2="425" y2="1088" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 18: REPORT (optional) -->
+  <rect x="290" y="1090" width="270" height="44" rx="7" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,3" filter="url(#shadow)"/>
+  <text x="425" y="1106" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">18 · REPORT  <tspan font-style="italic" font-size="9" fill="#94a3b8">(optional)</tspan></text>
+  <text x="425" y="1121" text-anchor="middle" font-size="10" fill="#64748b">HTML report  +  final.h5ad</text>
+
+  <line x1="425" y1="1134" x2="425" y2="1154" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Output -->
+  <rect x="290" y="1156" width="270" height="42" rx="8" fill="#0f172a" filter="url(#shadow)"/>
+  <text x="425" y="1172" text-anchor="middle" font-size="11" font-weight="600" fill="white">results/</text>
+  <text x="425" y="1188" text-anchor="middle" font-size="10" fill="#94a3b8">report.html  ·  final.h5ad  ·  de_results.csv</text>
+
+  <!-- Env labels on right side -->
+  <text x="840" y="220" text-anchor="middle" font-size="9" fill="#1e40af" transform="rotate(-90 840 220)">env_scanpy</text>
+  <text x="840" y="370" text-anchor="middle" font-size="9" fill="#166534" transform="rotate(-90 840 370)">env_r</text>
+  <text x="840" y="600" text-anchor="middle" font-size="9" fill="#166534" transform="rotate(-90 840 600)">env_scanpy / env_r</text>
+  <text x="840" y="800" text-anchor="middle" font-size="9" fill="#1e40af" transform="rotate(-90 840 800)">env_scanpy</text>
+
+</svg>
