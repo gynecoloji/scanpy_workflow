@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import anndata as ad
+import scanpy as sc
 import scipy.sparse
 
 
@@ -26,7 +27,6 @@ def small_adata():
 @pytest.fixture
 def normalized_adata(small_adata):
     """AnnData with layers: counts, norm, log_norm. X = log_norm."""
-    import scanpy as sc
     adata = small_adata.copy()
     adata.layers["counts"] = adata.X.copy()
     sc.pp.normalize_total(adata, target_sum=1e4)
@@ -48,7 +48,6 @@ def two_sample_adatas():
         adata.var_names = [f"gene_{i}" for i in range(200)]
         adata.obs["sample"] = f"sample_{s}"
         adata.layers["counts"] = adata.X.copy()
-        import scanpy as sc
         sc.pp.normalize_total(adata, target_sum=1e4)
         adata.layers["norm"] = adata.X.copy()
         sc.pp.log1p(adata)
@@ -61,12 +60,11 @@ def two_sample_adatas():
 def merged_adata(two_sample_adatas):
     """Merged AnnData with obs['sample'] batch key and X_pca."""
     import anndata
-    import scanpy as sc
     adata = anndata.concat(
         two_sample_adatas,
         label="sample",
         keys=["sample_0", "sample_1"],
-        merge="same",
+        merge="unique",
     )
     sc.pp.highly_variable_genes(adata, n_top_genes=100, flavor="seurat")
     sc.pp.scale(adata)
