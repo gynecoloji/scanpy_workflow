@@ -4,6 +4,10 @@ import numpy as np
 import anndata as ad
 import scanpy as sc
 import scipy.sparse
+import gzip
+import io
+import os
+import scipy.io
 from pathlib import Path
 
 # Add src directory to path for imports
@@ -76,3 +80,51 @@ def merged_adata(two_sample_adatas):
     sc.pp.pca(adata, n_comps=20, use_highly_variable=True)
     adata.uns["neighbors_use_rep"] = "X_pca"
     return adata
+
+
+def write_cellranger_dir(base_dir: str, n_cells: int = 50, n_genes: int = 100,
+                          sample: str = "sample") -> str:
+    """
+    Write a minimal CellRanger output structure:
+      base_dir/<sample>/filtered_feature_bc_matrix/{matrix.mtx.gz, barcodes.tsv.gz, features.tsv.gz}
+      base_dir/<sample>/raw_feature_bc_matrix/     {same files, more barcodes}
+    """
+    rng = np.random.default_rng(42)
+    barcodes = [f"ACGT{i:04d}-1" for i in range(n_cells)]
+    genes    = [f"GENE{i:04d}" for i in range(n_genes)]
+    counts   = rng.poisson(2, size=(n_genes, n_cells)).astype("float32")
+    mat      = scipy.sparse.csc_matrix(counts)
+
+    for subdir, bc_list in [
+        ("filtered_feature_bc_matrix", barcodes),
+        ("raw_feature_bc_matrix",      barcodes + [f"TTTT{i:04d}-1" for i in range(200)])
+    ]:
+        d = os.path.join(base_dir, sample, subdir)
+        os.makedirs(d, exist_ok=True)
+
+        # matrix.mtx.gz
+        buf = io.BytesIO()
+        scipy.io.mmwrite(buf, mat if subdir.startswith("filtered") else
+                         scipy.sparse.csc_matrix(rng.poisson(0.1, size=(n_genes, len(bc_list))).astype("float32")))
+        with gzip.open(os.path.join(d, "matrix.mtx.gz"), "wb") as f:
+            f.write(buf.getvalue())
+
+        # barcodes.tsv.gz
+        with gzip.open(os.path.join(d, "barcodes.tsv.gz"), "wt") as f:
+            f.write("\n".join(bc_list) + "\n")
+
+        # features.tsv.gz
+        with gzip.open(os.path.join(d, "features.tsv.gz"), "wt") as f:
+            for g in genes:
+                f.write(f"{g}\t{g}\tGene Expression\n")
+
+    return os.path.join(base_dir, sample)
+
+
+@pytest.fixture(scope="session")
+def cellranger_dir(tmp_path_factory):
+    """Two-sample synthetic CellRanger fixture for integration tests."""
+    base = str(tmp_path_factory.mktemp("cellranger"))
+    write_cellranger_dir(base, sample="sample_A")
+    write_cellranger_dir(base, sample="sample_B")
+    return base
