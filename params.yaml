@@ -1,0 +1,66 @@
+# params.yaml — runtime configuration for scanpy_workflow Nextflow pipeline
+# Override defaults in nextflow.config. Pass with: nextflow run ... -params-file params.yaml
+
+input_dir: "data/cellranger/"
+samples:
+  - sample_A
+  - sample_B
+
+ambient:
+  enabled: true
+  method: soupx           # soupx | decontx
+
+filter:
+  min_genes: 200
+  max_genes: 6000
+  min_counts: 500
+  max_counts: 30000
+  max_pct_mito: 20
+  max_pct_ribo: 50
+  min_cells: 3
+
+doublet:
+  enabled: true
+  method: scrublet
+
+normalization:
+  method: library_size    # library_size | scran
+  target_sum: 10000
+
+hvg:
+  n_top_genes: 3000
+  post_merge_n_top_genes: 2000
+  flavor: seurat_v3       # seurat_v3 | seurat | cell_ranger
+
+pca:
+  n_comps: 50
+
+batch_correction:
+  enabled: true
+  method: harmony         # harmony | scvi | bbknn
+  batch_key: sample
+
+imputation:
+  enabled: false
+  method: magic           # magic | scvi | alra
+  evaluate: true
+
+clustering:
+  algorithm: leiden       # leiden | louvain
+  resolution: 0.5
+  n_neighbors: 15
+  evaluate: true
+
+annotation:
+  unsupervised: true
+  automated: true
+  method: celltypist      # celltypist | sctype
+  celltypist_model: "Immune_All_Low.pkl"
+  sctype_markers: null    # path to markers.json; required if method: sctype
+
+de:
+  method: wilcoxon        # wilcoxon | t-test | logreg
+  groupby: leiden
+
+output_dir: "results/"
+report: true
