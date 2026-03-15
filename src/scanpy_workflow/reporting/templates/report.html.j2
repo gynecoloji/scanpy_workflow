@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><title>Scanpy Workflow Report</title>
+<style>body{font-family:Arial,sans-serif;max-width:1200px;margin:auto;padding:20px;}
+h1{color:#2c3e50;}table{border-collapse:collapse;width:100%;}
+td,th{border:1px solid #ddd;padding:8px;}th{background:#f2f2f2;}
+img{max-width:100%;margin:10px 0;}</style>
+</head>
+<body>
+<h1>Single-Cell RNA-seq Workflow Report</h1>
+<p>Generated: {{ timestamp }}</p>
+
+<h2>Dataset Summary</h2>
+<table>
+<tr><th>Metric</th><th>Value</th></tr>
+<tr><td>Total cells</td><td>{{ n_cells }}</td></tr>
+<tr><td>Total genes</td><td>{{ n_genes }}</td></tr>
+<tr><td>Samples</td><td>{{ samples | join(", ") }}</td></tr>
+<tr><td>Clusters</td><td>{{ n_clusters }}</td></tr>
+</table>
+
+{% if umap_plot %}
+<h2>UMAP</h2>
+<img src="{{ umap_plot }}" alt="UMAP">
+{% endif %}
+
+{% if cluster_metrics %}
+<h2>Clustering Metrics</h2>
+<table>
+{% for k, v in cluster_metrics.items() %}
+<tr><td>{{ k }}</td><td>{{ v }}</td></tr>
+{% endfor %}
+</table>
+{% endif %}
+
+<h2>Parameters</h2>
+<pre>{{ params_json }}</pre>
+</body>
+</html>
