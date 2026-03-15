@@ -23,7 +23,13 @@ def detect_doublets(
         expected_doublet_rate=expected_doublet_rate,
         random_state=random_state,
     )
-    doublet_scores, predicted_doublets = scrub.scrub_doublets(verbose=False)
+    # Use 'randomized' svd_solver to avoid the sklearn ARPACK restriction that
+    # n_components must be strictly less than min(n_samples, n_features).
+    # This is necessary when data has few cells or genes (e.g. small samples or tests).
+    n_prin_comps = min(30, adata.n_vars - 1, adata.n_obs - 1)
+    doublet_scores, predicted_doublets = scrub.scrub_doublets(
+        verbose=False, n_prin_comps=n_prin_comps, svd_solver="randomized"
+    )
 
     adata.obs["doublet_score"] = doublet_scores
     adata.obs["predicted_doublet"] = predicted_doublets

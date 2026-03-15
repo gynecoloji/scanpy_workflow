@@ -26,7 +26,9 @@ def run_de(
 
     sc.tl.rank_genes_groups(adata, groupby=groupby, method=method, n_genes=n_genes)
 
-    groups = adata.obs[groupby].unique().tolist()
+    # Use only the groups that have results (logreg omits the reference group)
+    # Use only the groups that have results (logreg omits the reference group)
+    groups = list(adata.uns["rank_genes_groups"]["names"].dtype.names)
     dfs = []
     for group in groups:
         result = sc.get.rank_genes_groups_df(adata, group=str(group))
@@ -38,6 +40,10 @@ def run_de(
             "pvals_adj": "pval_adj",
         })
         result["group"] = str(group)
+        # Add missing columns (logreg does not return logfoldchange/pval/pval_adj)
+        for col in ["logfoldchange", "pval", "pval_adj"]:
+            if col not in result.columns:
+                result[col] = np.nan
         dfs.append(result)
 
     df = pd.concat(dfs, ignore_index=True)

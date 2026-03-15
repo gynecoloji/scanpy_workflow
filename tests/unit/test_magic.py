@@ -1,5 +1,8 @@
 import numpy as np
+import pytest
 from scanpy_workflow.imputation.magic import impute_magic
+
+magic = pytest.importorskip("magic", reason="magic-impute not installed; skipping MAGIC tests")
 
 
 def test_magic_preserves_shape(normalized_adata):

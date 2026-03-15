@@ -22,8 +22,10 @@ def test_de_returns_required_columns(merged_adata):
 
 
 def test_de_logreg_pval_is_nan(merged_adata):
-    adata = _clustered_adata(merged_adata)
-    df = run_de(adata, groupby="leiden", method="logreg")
+    adata = merged_adata.copy()
+    # Use the existing 'sample' obs column (always 2 groups) to avoid
+    # single-cluster leiden issues on small test data
+    df = run_de(adata, groupby="sample", method="logreg")
     assert df["pval"].isna().all()
     assert df["pval_adj"].isna().all()
 
