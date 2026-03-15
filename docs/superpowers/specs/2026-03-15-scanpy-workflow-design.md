@@ -397,7 +397,7 @@ scanpy_workflow/
 
 ### DE Output Schema
 
-All DE methods write a CSV with columns: `gene`, `score`, `logfoldchange`, `pval`, `pval_adj`. For `logreg`, `pval` and `pval_adj` are `NaN`. The reporting step generates bar plots of top-scoring genes for `logreg` instead of volcano plots.
+All DE methods write a CSV with columns: `group`, `gene`, `score`, `logfoldchange`, `pval`, `pval_adj`. `group` identifies the cluster each result belongs to (value of `de.groupby`). For `logreg`, `pval` and `pval_adj` are `NaN`. The reporting step generates bar plots of top-scoring genes for `logreg` instead of volcano plots.
 
 ---
 
