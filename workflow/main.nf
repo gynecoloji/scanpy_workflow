@@ -8,7 +8,9 @@ include { CLUSTER     } from './modules/clustering'
 include { RANK_GENES  } from './modules/annotation'
 include { ANNOTATE_CELLTYPIST } from './modules/annotation'
 include { ANNOTATE_SCTYPE     } from './modules/annotation'
-include { DE          } from './modules/de'
+include { DE             } from './modules/de'
+include { DE_MAST        } from './modules/de'
+include { DE_PSEUDOBULK  } from './modules/de'
 include { REPORT      } from './modules/report'
 
 // Note: workflow/lib/validate.groovy is auto-loaded by Nextflow; no include needed.
@@ -69,18 +71,29 @@ workflow {
         }
     }
 
-    // Step 17: Differential expression
-    de_result = DE(
-        annotated_h5ad,
-        params.de.method,
-        params.de.groupby ?: params.clustering.algorithm
-    )
+    // Step 17: Differential expression — branch on method to select correct env
+    def de_groupby = params.de.groupby ?: params.clustering.algorithm
+    if (params.de.method == "mast") {
+        de_result = DE_MAST(annotated_h5ad, de_groupby)
+    } else if (params.de.method == "pseudobulk") {
+        de_result = DE_PSEUDOBULK(
+            annotated_h5ad,
+            de_groupby,
+            params.de.sample_key ?: "sample"
+        )
+    } else {
+        de_result = DE(annotated_h5ad, params.de.method, de_groupby)
+    }
 
     // Step 18: HTML report + final .h5ad
+    // de_result[0] is the CSV for all DE methods (mast/pseudobulk emit single output)
     if (params.report) {
+        def de_csv = (params.de.method == "mast" || params.de.method == "pseudobulk")
+            ? de_result
+            : de_result[0]
         REPORT(
             annotated_h5ad,
-            de_result[0],
+            de_csv,
             params.output_dir
         )
     }

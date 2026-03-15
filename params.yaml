@@ -59,8 +59,10 @@ annotation:
   sctype_markers: null    # path to markers.json; required if method: sctype
 
 de:
-  method: wilcoxon        # wilcoxon | t-test | logreg
+  method: wilcoxon        # wilcoxon | t-test | logreg | mast | pseudobulk
   groupby: leiden
+  sample_key: sample      # obs column with sample IDs (used by pseudobulk)
+  min_cells: 10           # min cells per (cluster, sample) pseudo-bulk (used by pseudobulk)
 
 output_dir: "results/"
 report: true

@@ -22,3 +22,5 @@ dependencies:
   # Run: make install-r-github  (see Makefile target below)
   - r-remotes                       # for GitHub installs above
   - r-biocmanager
+  - bioconductor-mast>=1.26         # hurdle-model DE for scRNA-seq
+  - bioconductor-deseq2>=1.40       # pseudo-bulk DE
