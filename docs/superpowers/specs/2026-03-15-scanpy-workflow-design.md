@@ -106,14 +106,14 @@ Each Nextflow process declares both a `conda` directive and a `container` direct
 > | Method | Input embedding | `adata.uns["neighbors_use_rep"]` | `pp.neighbors` behavior |
 > |--------|----------------|----------------------------------|------------------------|
 > | Harmony | `X_pca` | `"X_pca_harmony"` | Called with `use_rep="X_pca_harmony"` |
-> | scVI | `layers["log_norm"]` | `"X_scVI"` | Called with `use_rep="X_scVI"` |
+> | scVI | `layers["counts"]` (raw counts required by scVI VAE) | `"X_scVI"` | Called with `use_rep="X_scVI"` |
 > | BBKNN | `X_pca` (called as `bbknn.bbknn(adata, use_rep="X_pca")`) | `"skip"` | Skipped — BBKNN writes `obsp["connectivities"]` + `obsp["distances"]` directly |
 > | None | — | `"X_pca"` | Called with `use_rep="X_pca"` |
 
 > **Note on scVI for batch correction and imputation:**
 > - `batch_correction.method: scvi` and `imputation.method: scvi` **cannot both be set** — `config.py` raises a hard error at startup.
 > - When `batch_correction.method: scvi`, scVI denoised expression is stored in `adata.layers["scvi_denoised"]` automatically.
-> - When `imputation.method: scvi` (and `batch_correction.method` is NOT `scvi`), `imputation/scvi.py` trains its own model using `layers["log_norm"]`, stores denoised output in `layers["scvi_denoised"]`, and saves the model to `results/imputation/scvi_model/`.
+> - When `imputation.method: scvi` (and `batch_correction.method` is NOT `scvi`), `imputation/scvi.py` trains its own model using `layers["counts"]` (raw counts required by scVI VAE), stores denoised output in `layers["scvi_denoised"]`, and saves the model to `results/imputation/scvi_model/`.
 
 > **Note on MAGIC input layer:** MAGIC operates on `adata.layers["norm"]` (library-size normalized, pre-log) per MAGIC's recommended usage.
 
@@ -286,7 +286,7 @@ scanpy_workflow/
 │       │   ├── harmony.py          # Input: X_pca; output: obsm["X_pca_harmony"];
 │       │   │                       # writes uns["neighbors_use_rep"]="X_pca_harmony";
 │       │   │                       # calls evaluate.py inline
-│       │   ├── scvi.py             # Input: layers["log_norm"]; output: obsm["X_scVI"] + layers["scvi_denoised"];
+│       │   ├── scvi.py             # Input: layers["counts"] (raw counts required by scVI VAE); output: obsm["X_scVI"] + layers["scvi_denoised"];
 │       │   │                       # uses VAEModel from utils/scvi_model.py;
 │       │   │                       # writes uns["neighbors_use_rep"]="X_scVI";
 │       │   │                       # calls evaluate.py inline
@@ -297,7 +297,7 @@ scanpy_workflow/
 │       │   └── evaluate.py         # scib-metrics: kBET approx, iLISI, cLISI, ASW, UMAP comparison
 │       ├── imputation/
 │       │   ├── magic.py            # Input: layers["norm"]; calls evaluate.py inline if imputation.evaluate
-│       │   ├── scvi.py             # Input: layers["log_norm"]; uses VAEModel from utils/scvi_model.py;
+│       │   ├── scvi.py             # Input: layers["counts"] (raw counts required by scVI VAE); uses VAEModel from utils/scvi_model.py;
 │       │   │                       # stores layers["scvi_denoised"]; saves model artifact;
 │       │   │                       # calls evaluate.py inline if imputation.evaluate
 │       │   ├── alra.R              # Called directly by Nextflow via Rscript
