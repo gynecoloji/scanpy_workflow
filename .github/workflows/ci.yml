@@ -1,0 +1,63 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python-unit:
+    name: Python unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: pip install -e ".[dev]"
+      - name: Run Python unit tests
+        run: pytest tests/unit/ -v --tb=short
+
+  r-unit:
+    name: R unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.3"
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::optparse
+            any::testthat
+            any::jsonlite
+            any::remotes
+            any::SoupX
+            bioc::zellkonverter
+            bioc::SingleCellExperiment
+            bioc::scran
+            bioc::scater
+            bioc::celda
+      - name: Install GitHub-only packages (ALRA, scType)
+        run: make install-r-github
+      - name: Run R unit tests
+        run: Rscript -e "testthat::test_dir('tests/unit/r/', reporter = 'progress')"
+
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [python-unit, r-unit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: pip install -e ".[dev]"
+      - name: Run integration tests
+        run: pytest tests/integration/ -v --tb=short
