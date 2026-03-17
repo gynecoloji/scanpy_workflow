@@ -58,6 +58,15 @@ annotation:
   celltypist_model: "Immune_All_Low.pkl"
   sctype_markers: null    # path to markers.json; required if method: sctype
 
+pathway:
+  enabled: false
+  source: msigdb_hallmark  # msigdb_hallmark | msigdb_kegg | msigdb_reactome | msigdb_gobp | progeny | custom
+  method: aucell           # aucell | ulm | scanpy_score
+  groupby: leiden          # obs column for per-cluster summary
+  organism: human          # human | mouse
+  min_n: 5                 # min gene-set/data overlap to keep a gene set
+  custom_genesets: null    # path to .gmt or .csv file (required when source: custom)
+
 de:
   method: wilcoxon        # wilcoxon | t-test | logreg | mast | pseudobulk
   groupby: leiden

@@ -26,6 +26,7 @@ dependencies:
   - scipy>=1.10
   - matplotlib>=3.7
   - seaborn>=0.12
+  - decoupler-py>=1.6      # pathway / gene-set scoring (aucell, ulm, MSigDB, PROGENy)
   - pip
   - pip:
     - scanpy_workflow  # install local package (editable install handled by CI)

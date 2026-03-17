@@ -264,6 +264,49 @@ def cmd_de(input_path, output_path, de_dir, groupby, method):
     write_h5ad(adata, output_path)
 
 
+# ── pathway-score ─────────────────────────────────────────────────────────────
+@cli.command("pathway-score")
+@click.option("--input", "input_path", required=True,
+              help="Input .h5ad (log-normalised X)")
+@click.option("--output", "output_path", required=True,
+              help="Output .h5ad with pathway scores in obsm['pathway_scores']")
+@click.option("--source", required=True,
+              type=click.Choice([
+                  "progeny", "msigdb_hallmark", "msigdb_kegg",
+                  "msigdb_reactome", "msigdb_gobp", "custom"
+              ]),
+              help="Gene-set source")
+@click.option("--method", default="aucell",
+              type=click.Choice(["aucell", "ulm", "scanpy_score"]),
+              help="Scoring method [default: aucell]")
+@click.option("--groupby", default="leiden",
+              help="obs column for per-cluster summary [default: leiden]")
+@click.option("--min-n", "min_n", default=5, type=int,
+              help="Min gene-set / data overlap to keep a gene set [default: 5]")
+@click.option("--organism", default="human",
+              type=click.Choice(["human", "mouse"]),
+              help="Organism for built-in gene sets [default: human]")
+@click.option("--custom-genesets", "custom_path", default=None,
+              help="Path to .gmt or .csv gene-set file (required when source=custom)")
+@click.option("--output-dir", "output_dir", default=None,
+              help="Directory to write pathway_scores.csv and cluster summary")
+def cmd_pathway_score(input_path, output_path, source, method, groupby,
+                      min_n, organism, custom_path, output_dir):
+    """Score cells against pathway / gene-set collections."""
+    from scanpy_workflow.pathway.genesets import load_genesets
+    from scanpy_workflow.pathway.score import run_pathway_scoring
+    adata = read_h5ad(input_path)
+    net = load_genesets(source, organism=organism, custom_path=custom_path)
+    scores = run_pathway_scoring(
+        adata, net, method=method, groupby=groupby,
+        min_n=min_n, output_dir=output_dir
+    )
+    write_h5ad(adata, output_path)
+    click.echo(
+        f"Scored {scores.shape[1]} gene sets across {scores.shape[0]} cells -> {output_path}"
+    )
+
+
 # ── report ────────────────────────────────────────────────────────────────────
 @cli.command("report")
 @click.option("--input", "input_path", required=True)

@@ -34,6 +34,7 @@ An end-to-end single-cell RNA-seq analysis pipeline built on [Scanpy](https://sc
 | Clustering | Leiden, Louvain |
 | Cell-type annotation | CellTypist, scType |
 | Differential expression | Wilcoxon, t-test, logistic regression, MAST, DESeq2 pseudo-bulk |
+| Pathway scoring | AUCell, ULM (decoupler); scanpy score_genes; MSigDB Hallmark/KEGG/Reactome/GO-BP, PROGENy, custom GMT/CSV |
 
 All inter-process communication is via `.h5ad` files. The pipeline can run with conda, Docker, or Singularity.
 
@@ -256,8 +257,98 @@ The pipeline is split into two sub-workflows and a main orchestrator:
 | 14–15 | CLUSTER | KNN graph → Leiden/Louvain; optional silhouette evaluation |
 | 16a | RANK\_GENES | Unsupervised marker gene ranking per cluster |
 | 16b | ANNOTATE | CellTypist (pre-trained model) or scType (custom markers) |
+| 16c | PATHWAY\_SCORE *(optional)* | Per-cell pathway scoring; runs in parallel with 16a/16b |
 | 17 | DE | Differential expression (see below) |
 | 18 | REPORT | HTML report + final `.h5ad` |
+
+---
+
+## Pathway Scoring
+
+Pathway scoring runs per-cell on the clustered `.h5ad` (step 16c) and is independent of annotation and DE. It can be enabled for any combination of built-in or custom gene sets.
+
+### Enabling pathway scoring
+
+```yaml
+pathway:
+  enabled: true
+  source: msigdb_hallmark   # see sources below
+  method: aucell            # see methods below
+  groupby: leiden
+  organism: human           # human | mouse
+  min_n: 5                  # drop gene sets with fewer than this many genes in the data
+  custom_genesets: null     # path to .gmt or .csv (required when source: custom)
+```
+
+### Gene set sources
+
+| `source` | Description | Requires |
+|---|---|---|
+| `msigdb_hallmark` | MSigDB Hallmark collection (50 gene sets) | decoupler-py |
+| `msigdb_kegg` | MSigDB KEGG pathway collection | decoupler-py |
+| `msigdb_reactome` | MSigDB Reactome pathway collection | decoupler-py |
+| `msigdb_gobp` | MSigDB GO Biological Process collection | decoupler-py |
+| `progeny` | PROGENy — 14 cancer signalling pathways with curated weights | decoupler-py |
+| `custom` | User-supplied file (`.gmt` or `.csv`/`.tsv`) | — |
+
+### Scoring methods
+
+| `method` | Algorithm | Best for | Requires |
+|---|---|---|---|
+| `aucell` | Rank-based area under recovery curve | Sparse scRNA-seq; robust to dropouts | decoupler-py |
+| `ulm` | Univariate linear model; uses gene weights | Weighted gene sets (PROGENy, DoRothEA) | decoupler-py |
+| `scanpy_score` | Mean expression of gene set minus control genes | Quick exploration; no extra dependency | — |
+
+### Custom gene sets
+
+**GMT format** (standard MSigDB export):
+```
+HALLMARK_APOPTOSIS	Brief description	CASP3	CASP7	CASP9	...
+MY_PATHWAY	My custom set	GeneA	GeneB	GeneC
+```
+
+**CSV format** (columns `gene_set` and `gene`; optional `weight`):
+```csv
+gene_set,gene,weight
+MY_PATHWAY,GeneA,1.0
+MY_PATHWAY,GeneB,0.8
+OTHER_PATH,GeneC,1.0
+```
+
+```yaml
+pathway:
+  enabled: true
+  source: custom
+  method: aucell
+  custom_genesets: "data/my_genesets.gmt"
+```
+
+### Output
+
+```
+results/pathway/
+├── pathway_scored.h5ad         # h5ad with obsm["pathway_scores"]
+└── pathway_results/
+    ├── pathway_scores.csv      # cells × pathways matrix
+    └── cluster_pathway_scores.csv  # per-cluster mean scores
+```
+
+`adata.obsm["pathway_scores"]` is a `pandas.DataFrame` (cells × pathways) accessible in Python:
+
+```python
+import anndata as ad
+adata = ad.read_h5ad("results/pathway/pathway_scored.h5ad")
+scores = adata.obsm["pathway_scores"]   # DataFrame: cells × pathways
+scores.groupby(adata.obs["leiden"]).mean()  # per-cluster activity
+```
+
+### Installing the decoupler extra
+
+```bash
+pip install "scanpy-workflow[pathway]"
+# or via conda (already included in env_scanpy.yaml):
+conda env create -f envs/env_scanpy.yaml
+```
 
 ---
 

@@ -11,6 +11,7 @@ include { ANNOTATE_SCTYPE     } from './modules/annotation'
 include { DE             } from './modules/de'
 include { DE_MAST        } from './modules/de'
 include { DE_PSEUDOBULK  } from './modules/de'
+include { PATHWAY_SCORE  } from './modules/pathway'
 include { REPORT      } from './modules/report'
 
 // Note: workflow/lib/validate.groovy is auto-loaded by Nextflow; no include needed.
@@ -69,6 +70,21 @@ workflow {
                 params.clustering.algorithm
             )
         }
+    }
+
+    // Step 16c (optional): Pathway scoring — runs on clustered h5ad in parallel with annotation
+    if (params.pathway.enabled) {
+        def pw_groupby = params.pathway.groupby ?: params.clustering.algorithm
+        def pw_custom  = params.pathway.custom_genesets
+            ? file(params.pathway.custom_genesets)
+            : file("NO_FILE")
+        PATHWAY_SCORE(
+            clustered_h5ad,
+            params.pathway.source,
+            params.pathway.method,
+            pw_groupby,
+            pw_custom
+        )
     }
 
     // Step 17: Differential expression — branch on method to select correct env
