@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QC Report — {{ sample_name }}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+           background: #f5f6fa; color: #2d3748; line-height: 1.6; }
+  header { background: #2b6cb0; color: #fff; padding: 1.5rem 2rem; }
+  header h1 { font-size: 1.5rem; font-weight: 700; }
+  header p  { font-size: 0.85rem; opacity: 0.85; margin-top: 0.2rem; }
+  main   { max-width: 1280px; margin: 2rem auto; padding: 0 1.5rem; }
+  section { background: #fff; border-radius: 8px; padding: 1.5rem;
+            margin-bottom: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  h2     { font-size: 1.1rem; font-weight: 600; color: #2b6cb0;
+            margin-bottom: 1rem; padding-bottom: 0.4rem;
+            border-bottom: 2px solid #ebf4ff; }
+  h3     { font-size: 0.95rem; font-weight: 600; color: #4a5568;
+            margin: 1rem 0 0.5rem; }
+
+  /* Summary cards */
+  .cards { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 0; }
+  .card  { background: #ebf4ff; border-radius: 6px; padding: 1rem 1.5rem;
+           min-width: 140px; flex: 1; text-align: center; }
+  .card .value { font-size: 1.8rem; font-weight: 700; color: #2b6cb0; }
+  .card .label { font-size: 0.78rem; color: #718096; margin-top: 0.2rem; }
+  .card.warn   { background: #fff5f5; }
+  .card.warn .value { color: #c53030; }
+  .card.ok     { background: #f0fff4; }
+  .card.ok .value   { color: #276749; }
+
+  /* Tables */
+  table  { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th     { background: #ebf4ff; text-align: left; padding: 0.55rem 0.75rem;
+           font-weight: 600; color: #2b6cb0; border-bottom: 2px solid #bee3f8; }
+  td     { padding: 0.5rem 0.75rem; border-bottom: 1px solid #e2e8f0; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td  { background: #f7fafc; }
+  .removed-high { color: #c53030; font-weight: 600; }
+  .removed-zero { color: #718096; }
+  .badge-pass  { background: #c6f6d5; color: #276749; border-radius: 4px;
+                 padding: 0.15rem 0.5rem; font-size: 0.78rem; font-weight: 600; }
+  .badge-fail  { background: #fed7d7; color: #c53030; border-radius: 4px;
+                 padding: 0.15rem 0.5rem; font-size: 0.78rem; font-weight: 600; }
+
+  /* Plots */
+  .plot-row  { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .plot-box  { flex: 1 1 45%; min-width: 280px; }
+  .plot-box img { width: 100%; height: auto; border-radius: 4px;
+                  border: 1px solid #e2e8f0; }
+  .plot-full img { width: 100%; height: auto; border-radius: 4px;
+                   border: 1px solid #e2e8f0; }
+
+  footer { text-align: center; font-size: 0.78rem; color: #a0aec0;
+           padding: 2rem 0 3rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>QC Report &mdash; {{ sample_name }}</h1>
+  <p>Generated {{ timestamp }} &nbsp;|&nbsp; scanpy-workflow</p>
+</header>
+
+<main>
+
+  <!-- ── Summary ───────────────────────────────────────────────────────── -->
+  <section>
+    <h2>Summary</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="value">{{ "{:,}".format(n_cells_total) }}</div>
+        <div class="label">Total cells (input)</div>
+      </div>
+      <div class="card {% if pct_pass < 50 %}warn{% elif pct_pass >= 80 %}ok{% endif %}">
+        <div class="value">{{ "{:,}".format(n_cells_pass) }}</div>
+        <div class="label">Cells passing filters ({{ pct_pass }}%)</div>
+      </div>
+      <div class="card">
+        <div class="value">{{ "{:,}".format(n_cells_total - n_cells_pass) }}</div>
+        <div class="label">Cells removed</div>
+      </div>
+      <div class="card">
+        <div class="value">{{ "{:,}".format(n_genes_total) }}</div>
+        <div class="label">Genes detected</div>
+      </div>
+      {% for row in metric_stats %}
+        {% if row.metric == "Genes per cell" %}
+      <div class="card">
+        <div class="value">{{ row.median }}</div>
+        <div class="label">Median genes / cell</div>
+      </div>
+        {% elif row.metric == "UMI counts" %}
+      <div class="card">
+        <div class="value">{{ "{:,.0f}".format(row.median) }}</div>
+        <div class="label">Median UMI / cell</div>
+      </div>
+        {% elif row.metric == "% Mitochondrial" %}
+      <div class="card {% if row.median > 15 %}warn{% endif %}">
+        <div class="value">{{ row.median }}%</div>
+        <div class="label">Median % Mito</div>
+      </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ── Filter Waterfall ──────────────────────────────────────────────── -->
+  <section>
+    <h2>Filtering Summary</h2>
+    <div class="plot-full" style="max-width:700px; margin-bottom:1.2rem;">
+      <img src="data:image/png;base64,{{ plots.waterfall }}" alt="Filter waterfall">
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Filter step</th>
+          <th>Threshold</th>
+          <th>Cells removed</th>
+          <th>% of total</th>
+          <th>Cells remaining</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for step in filter_steps %}
+        <tr>
+          <td>{{ step.label }}</td>
+          <td>{{ step.threshold }}</td>
+          <td class="{% if step.n_removed > 0 %}removed-high{% else %}removed-zero{% endif %}">
+            {{ "{:,}".format(step.n_removed) }}
+          </td>
+          <td>{{ step.pct_removed }}%</td>
+          <td><strong>{{ "{:,}".format(step.n_remaining) }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── QC Distributions ──────────────────────────────────────────────── -->
+  <section>
+    <h2>QC Metric Distributions</h2>
+    <h3>Violin plots</h3>
+    <div class="plot-full">
+      <img src="data:image/png;base64,{{ plots.violin }}" alt="QC violin plots">
+    </div>
+    <h3 style="margin-top:1.2rem;">Histograms</h3>
+    <div class="plot-full">
+      <img src="data:image/png;base64,{{ plots.histograms }}" alt="QC histograms">
+    </div>
+    <h3 style="margin-top:1.2rem;">Counts vs Genes scatter &amp; Knee plot</h3>
+    <div class="plot-row">
+      <div class="plot-box">
+        <img src="data:image/png;base64,{{ plots.scatter }}" alt="Counts vs genes scatter">
+      </div>
+      <div class="plot-box">
+        <img src="data:image/png;base64,{{ plots.knee }}" alt="Knee plot">
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Metric Statistics ─────────────────────────────────────────────── -->
+  <section>
+    <h2>QC Metric Statistics</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Median</th>
+          <th>Mean</th>
+          <th>Min</th>
+          <th>Max</th>
+          <th>5th pct</th>
+          <th>95th pct</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in metric_stats %}
+        <tr>
+          <td><strong>{{ row.metric }}</strong></td>
+          <td>{{ row.median }}</td>
+          <td>{{ row.mean }}</td>
+          <td>{{ row.min }}</td>
+          <td>{{ row.max }}</td>
+          <td>{{ row.p5 }}</td>
+          <td>{{ row.p95 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── Filter Thresholds Used ────────────────────────────────────────── -->
+  {% if thresholds %}
+  <section>
+    <h2>Filter Thresholds Applied</h2>
+    <table>
+      <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+      <tbody>
+        {% for key, val in thresholds.items() %}
+        <tr><td>{{ key }}</td><td>{{ val }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+
+</main>
+
+<footer>
+  <p>scanpy-workflow QC Report &nbsp;&bull;&nbsp; {{ sample_name }} &nbsp;&bull;&nbsp; {{ timestamp }}</p>
+</footer>
+
+</body>
+</html>

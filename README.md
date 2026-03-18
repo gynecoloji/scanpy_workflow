@@ -14,6 +14,8 @@ An end-to-end single-cell RNA-seq analysis pipeline built on [Scanpy](https://sc
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Pipeline Steps](#pipeline-steps)
+- [QC Report](#qc-report)
+- [Pathway Scoring](#pathway-scoring)
 - [Differential Expression Methods](#differential-expression-methods)
 - [Output Structure](#output-structure)
 - [Running Tests](#running-tests)
@@ -26,6 +28,7 @@ An end-to-end single-cell RNA-seq analysis pipeline built on [Scanpy](https://sc
 
 | Category | Options |
 |---|---|
+| QC reporting | Per-sample HTML report: violin, histogram, scatter, knee plot, filter waterfall |
 | Ambient RNA removal | SoupX, decontX |
 | Doublet detection | Scrublet |
 | Normalization | Library-size (scanpy), scran |
@@ -234,6 +237,7 @@ The pipeline is split into two sub-workflows and a main orchestrator:
 | 1 | LOAD | Read Cell Ranger MEX or HDF5; store raw counts in `layers["counts"]` |
 | 2 | AMBIENT *(optional)* | SoupX or decontX ambient RNA removal |
 | 3 | QC | Compute `n_genes`, `n_counts`, `pct_counts_mt`, `pct_counts_ribo` |
+| 3b | QC\_REPORT | Per-sample HTML QC report (runs in parallel with FILTER) |
 | 4 | FILTER | Hard thresholds on QC metrics |
 | 5 | DOUBLETS *(optional)* | Scrublet doublet scores; flag or remove doublets |
 | 6 | NORMALIZE | Library-size (`log1p` to `layers["log_norm"]`) or scran |
@@ -260,6 +264,49 @@ The pipeline is split into two sub-workflows and a main orchestrator:
 | 16c | PATHWAY\_SCORE *(optional)* | Per-cell pathway scoring; runs in parallel with 16a/16b |
 | 17 | DE | Differential expression (see below) |
 | 18 | REPORT | HTML report + final `.h5ad` |
+
+---
+
+## QC Report
+
+A per-sample HTML QC report is generated automatically at step 3b for every sample, using the pre-filter AnnData so the full cell distribution is visible. The report is self-contained (plots embedded as base64 PNG) and requires no web server.
+
+### Contents
+
+| Section | Description |
+|---|---|
+| Summary cards | Total cells, cells passing filters (%), median genes/cell, median UMI/cell, median % mito |
+| Filter waterfall | Bar chart of cells remaining after each sequential filter + table with cells removed per step |
+| Violin plots | `n_genes`, UMI counts, % mito, % ribo — with dashed threshold lines |
+| Histograms | Same 4 metrics as bar histograms with threshold lines |
+| Scatter plot | Total counts vs genes detected, coloured by % mito, threshold lines overlaid |
+| Knee plot | Cell rank vs total UMI (log–log) — helps identify empty droplets |
+| Metric statistics | Median, mean, min, max, 5th/95th percentiles per metric |
+| Thresholds table | Exact filter values applied |
+
+### Output location
+
+```
+results/per_sample/<sample>/qc_report/
+└── qc_report.html      # self-contained, single-file report
+```
+
+### Running standalone
+
+```bash
+scanpy-workflow qc-report \
+  --input        data/cellranger/sample_A/filtered_feature_bc_matrix/ \
+  --sample       sample_A \
+  --output       qc_report_A.html \
+  --min-genes    200 \
+  --max-genes    6000 \
+  --min-counts   500 \
+  --max-counts   30000 \
+  --max-pct-mito 20 \
+  --max-pct-ribo 50
+```
+
+The `--input` can be a Cell Ranger directory **or** an `.h5ad` file that has already had `compute_qc_metrics()` applied.
 
 ---
 

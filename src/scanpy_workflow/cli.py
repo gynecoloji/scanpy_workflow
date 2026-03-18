@@ -42,6 +42,38 @@ def cmd_qc(input_path, output_path, plots_dir):
     write_h5ad(adata, output_path)
 
 
+# ── qc-report ─────────────────────────────────────────────────────────────────
+@cli.command("qc-report")
+@click.option("--input",        "input_path",  required=True)
+@click.option("--sample",       "sample_name", default="sample",
+              help="Sample label for the report header [default: sample]")
+@click.option("--output",       "output_path", required=True,
+              help="Output .html path")
+@click.option("--min-genes",    default=200,   type=int)
+@click.option("--max-genes",    default=6000,  type=int)
+@click.option("--min-counts",   default=500,   type=int)
+@click.option("--max-counts",   default=30000, type=int)
+@click.option("--max-pct-mito", default=20.0,  type=float)
+@click.option("--max-pct-ribo", default=50.0,  type=float)
+def cmd_qc_report(input_path, sample_name, output_path,
+                  min_genes, max_genes, min_counts, max_counts,
+                  max_pct_mito, max_pct_ribo):
+    """Generate per-sample QC HTML report with filter-threshold overlays."""
+    from scanpy_workflow.qc.metrics import compute_qc_metrics
+    from scanpy_workflow.qc.report import generate_qc_report
+    adata = read_h5ad(input_path)
+    if "n_genes_by_counts" not in adata.obs.columns:
+        adata = compute_qc_metrics(adata)
+    thresholds = dict(
+        min_genes=min_genes, max_genes=max_genes,
+        min_counts=min_counts, max_counts=max_counts,
+        max_pct_mito=max_pct_mito, max_pct_ribo=max_pct_ribo,
+    )
+    generate_qc_report(adata, sample_name=sample_name,
+                       thresholds=thresholds, output_path=output_path)
+    click.echo(f"QC report written to {output_path}")
+
+
 # ── filter ────────────────────────────────────────────────────────────────────
 @cli.command("filter")
 @click.option("--input", "input_path", required=True)

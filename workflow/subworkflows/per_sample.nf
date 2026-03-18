@@ -2,6 +2,7 @@
 include { LOAD          } from '../modules/load'
 include { AMBIENT       } from '../modules/ambient'
 include { QC            } from '../modules/qc'
+include { QC_REPORT     } from '../modules/qc_report'
 include { FILTER        } from '../modules/filter'
 include { DOUBLETS      } from '../modules/doublets'
 include { NORMALIZE       } from '../modules/preprocess'
@@ -38,6 +39,9 @@ workflow PER_SAMPLE {
 
     // Step 3: QC metrics
     qc_ch = QC(post_ambient_ch)
+
+    // Step 3b: Per-sample QC report (runs in parallel with filter)
+    QC_REPORT(qc_ch[0])
 
     // Step 4: Filter
     filtered_ch = FILTER(qc_ch[0])   // qc_ch emits [tuple, path(plots)]
