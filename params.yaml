@@ -2,9 +2,16 @@
 # Override defaults in nextflow.config. Pass with: nextflow run ... -params-file params.yaml
 
 input_dir: "data/cellranger/"
+output_dir: "results/"
 samples:
   - sample_A
   - sample_B
+
+# Path to a directory containing pre-built Singularity/Apptainer .sif files.
+# Expected filenames: scanpy.sif, scvi.sif, r_env.sif
+# Uncomment and set when using -profile singularity or -profile apptainer.
+# If null (default), containers are pulled from Docker Hub at runtime.
+sif_dir: null
 
 ambient:
   enabled: true

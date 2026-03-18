@@ -128,12 +128,51 @@ samples:
 nextflow run workflow/main.nf -params-file params.yaml -profile conda -resume
 ```
 
-### Docker / Singularity
+### Docker
 
 ```bash
 nextflow run workflow/main.nf -params-file params.yaml -profile docker
-nextflow run workflow/main.nf -params-file params.yaml -profile singularity
 ```
+
+### Singularity / Apptainer — pull from Docker Hub at runtime
+
+```bash
+nextflow run workflow/main.nf -params-file params.yaml -profile singularity
+nextflow run workflow/main.nf -params-file params.yaml -profile apptainer
+```
+
+### Singularity / Apptainer — load pre-built `.sif` files (recommended on HPC)
+
+Build the images once on a machine with internet access:
+
+```bash
+apptainer pull /shared/containers/scanpy.sif docker://scanpy_workflow/scanpy:latest
+apptainer pull /shared/containers/scvi.sif   docker://scanpy_workflow/scvi:latest
+apptainer pull /shared/containers/r_env.sif  docker://scanpy_workflow/r:latest
+```
+
+Then point the pipeline at that directory with `sif_dir`:
+
+```bash
+nextflow run workflow/main.nf \
+  -params-file params.yaml \
+  -profile apptainer \
+  --sif_dir /shared/containers
+```
+
+Or set it permanently in `params.yaml`:
+
+```yaml
+sif_dir: "/shared/containers"
+```
+
+Expected filenames inside `sif_dir`:
+
+| File | Used by |
+|---|---|
+| `scanpy.sif` | All Python steps |
+| `scvi.sif` | scVI batch correction / imputation |
+| `r_env.sif` | scran, SoupX, decontX, MAST, DESeq2, ALRA, scType |
 
 ---
 
@@ -535,6 +574,20 @@ pytest tests/integration/ -v
 | `envs/env_r.yaml` | `r_env` | scran, SoupX, decontX, ALRA, scType, MAST, DESeq2 |
 
 Nextflow selects the correct environment automatically based on the `label` declared in each module. You only need the environments for the steps you enable.
+
+---
+
+## Profiles
+
+| Profile | Description |
+|---|---|
+| `conda` | Uses conda YAML files in `envs/`; recommended for development |
+| `docker` | Pulls Docker images; requires Docker daemon |
+| `singularity` | Uses Singularity; pulls from Docker Hub unless `sif_dir` is set |
+| `apptainer` | Uses Apptainer (successor to Singularity); same image sources and `sif_dir` logic |
+| `test` | Minimal CI profile; expects conda envs already activated |
+
+> **Apptainer vs Singularity:** Apptainer is the Linux Foundation fork of Singularity (v1.0+). Both use `.sif` files and the same container images. Use `-profile apptainer` on systems where the binary is `apptainer`, and `-profile singularity` where it is `singularity`. Requires Nextflow ≥ 22.10 for the `apptainer` profile.
 
 ---
 
