@@ -9,19 +9,21 @@ process BATCH_CORRECT {
     path h5ad
     val  method      // "harmony" | "bbknn"
     val  batch_key
+    val  evaluate    // "true" | "false"
 
     output:
     path "batch_corrected.h5ad"
     path "evaluation/", optional: true
 
     script:
+    def eval_flag = (evaluate == "true") ? "--evaluate --eval-dir evaluation/" : ""
     """
     scanpy-workflow batch-correct \
         --input     ${h5ad} \
         --output    batch_corrected.h5ad \
         --method    ${method} \
         --batch-key ${batch_key} \
-        --eval-dir  evaluation/
+        ${eval_flag}
     """
 }
 
@@ -33,18 +35,20 @@ process BATCH_CORRECT_SCVI {
     input:
     path h5ad
     val  batch_key
+    val  evaluate    // "true" | "false"
 
     output:
     path "batch_corrected.h5ad"
     path "evaluation/", optional: true
 
     script:
+    def eval_flag = (evaluate == "true") ? "--evaluate --eval-dir evaluation/" : ""
     """
     scanpy-workflow batch-correct \
         --input     ${h5ad} \
         --output    batch_corrected.h5ad \
         --method    scvi \
         --batch-key ${batch_key} \
-        --eval-dir  evaluation/
+        ${eval_flag}
     """
 }

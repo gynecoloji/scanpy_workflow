@@ -50,15 +50,18 @@ workflow INTEGRATION {
     }
 
     // Step 11: PCA
-    pca_h5ad = PCA(pre_pca_h5ad, params.pca.n_comps, scvi_bc.toString())
+    pca_h5ad = PCA(pre_pca_h5ad, params.pca.n_comps, scvi_bc.toString(),
+                   (params.pca.evaluate ?: false).toString())
 
     // Step 12 (optional): Batch correction — branch on method to select env
+    def bc_evaluate = (params.batch_correction.evaluate ?: false).toString()
     if (params.batch_correction.enabled) {
         if (params.batch_correction.method == "scvi") {
-            bc_result    = BATCH_CORRECT_SCVI(pca_h5ad, params.batch_correction.batch_key)
+            bc_result    = BATCH_CORRECT_SCVI(pca_h5ad, params.batch_correction.batch_key,
+                                              bc_evaluate)
         } else {
             bc_result    = BATCH_CORRECT(pca_h5ad, params.batch_correction.method,
-                                         params.batch_correction.batch_key)
+                                         params.batch_correction.batch_key, bc_evaluate)
         }
         post_bc_h5ad = bc_result[0]
     } else {

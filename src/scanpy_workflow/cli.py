@@ -176,11 +176,20 @@ def cmd_scale(input_path, output_path, max_value):
 @click.option("--n-comps", default=50, type=int)
 @click.option("--scvi-path", is_flag=True, default=False,
               help="Assert X equals layers['log_norm'] (scVI path, scaling was skipped)")
-def cmd_pca(input_path, output_path, n_comps, scvi_path):
+@click.option("--evaluate", is_flag=True, default=False,
+              help="Run PCA evaluation (scree plot, loadings, metrics JSON)")
+@click.option("--eval-dir", "eval_dir", default=None,
+              help="Directory to write evaluation outputs")
+def cmd_pca(input_path, output_path, n_comps, scvi_path, evaluate, eval_dir):
     """Run PCA."""
     from scanpy_workflow.preprocessing.pca import run_pca
     adata = read_h5ad(input_path)
     adata = run_pca(adata, n_comps=n_comps, scvi_path=scvi_path)
+    if evaluate and eval_dir:
+        from scanpy_workflow.preprocessing.evaluate_pca import evaluate_pca
+        scores = evaluate_pca(adata, output_dir=eval_dir)
+        click.echo(f"PCA evaluation: elbow=PC{scores['elbow_pc']}, "
+                   f"80% variance @ PC{scores['cumvar_80pct']}")
     write_h5ad(adata, output_path)
 
 

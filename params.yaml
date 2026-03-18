@@ -41,9 +41,11 @@ hvg:
 
 pca:
   n_comps: 50
+  evaluate: true           # scree plot, loadings, pca_metrics.json
 
 batch_correction:
   enabled: true
+  evaluate: true           # UMAP post-correction, batch metrics JSON
   method: harmony         # harmony | scvi | bbknn
   batch_key: sample
 
